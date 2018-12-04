@@ -1,6 +1,6 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "Emoji-to-Text"
+author: "Kelly Jamrog, Kim Pham, and Jacob Kuruvilla"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -16,50 +16,82 @@ knitr::opts_chunk$set(
 )
 ```
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `html_vignette` format:
+`emojitotext` is a function designed to aid in text mining analysis.  The function dectects and replaces emojis, as well as accent characters, within text data.  The function returns a text string where emoji and/or accent unicodes are replaced with a descriptive phrase i.e. "smiling face with heart-eyes".
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+Often text data-- expecaially data from social media websites like Twitter, Facebook or Instagram-- can contain emojis which are small images of facial expressions, places, foods, animals, etc.  Many text mining processes are unable to process these non-alphanumeric characters, and so, in a preprocessing step, they are dropped from text data.  However, removing emojis from text also removes important insight into the meaning of the text data.  For example, "I am going to Advanced R class" followed by a smiley face verse a frowning face takes on different meaning. 
 
-## Vignette Info
+`emojitotext` allows users to replace emojis with descriptive phrases as an alternative to dropping these characters from text.
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+## The Function
 
-## Styles
+`emojiototext` works by iterating through `emoji_df`, which is an emoji reference dataframe.  Using regular expressions, if a byte sequence associated with an emoji is found within the text, the byte sequence is replaced with the corresponding english phrase.  The main driver behind `emojitotext` is the helper function `emojitotext_for_one` which actually performs the emoji identification and replacement for a singular character string.  `emojitotext` simply wraps `emojitotext_for_one` in an `lapply` to allow users to easily perfrom emoji replacement on a vector of character strings.
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+If users would like, the option `accents` can be specified to allow for characters with accents to be replaced with a corresponding ASCII character. This process works similariy, by iterating through `accent_df`, which is an accent reference dataframe.
 
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
+## Reference Data Frames
 
-## Figures
+As of December 2018, `emoji_df` is a comprehensive emoji reference dataframe.  The raw data was obtained from [unicode.org](https://unicode.org/emoji/charts/full-emoji-list.html) and contains single unicode emojis as well as more complicated emojis (i.e. containing skin tones). 
 
-The figure sizes have been customised so that you can easily put two images side-by-side. 
+`accent_df` is dataframe containing a varierty of accent characters and symbols from [https://en.wikipedia.org/wiki/List_of_Unicode_characters](https://en.wikipedia.org/wiki/List_of_Unicode_characters). If a character is a letter, the user has the option to convert it to its corresponding ASCII character. If a character is a symbol, then it is replaced by an empty string.
 
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+## Example: Sentiment Analysis
+
+To demonstrate a potential use for `emojitotext`, we will perform sentiment analysis on text after replacing emojis with english phrases.
+
+Suppose we have the following data frame:
+
+```{r}
+library(stringr)
+
+emoji_text <- data.frame(text = c("I’m so hungry 😩 and my stomach hurts!",
+                                  "I am super excited to go on vacation with my family 🌸🌊🏄🏽",
+                                  "My mom is making me eat my vegetables. 🥦🤢😡😭 I wish I could eat ice cream all day! 🍦",
+                                  "I have to go to bed now! 😴 Good night!😘😍💕",
+                                  "I have to go to bed now! 😔 Good night!😠😠😠"),
+                         stringsAsFactors = FALSE)
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+Now let's look at the text column we just created.  When printed, the emojis are displayed as unicode which is not in an interpretable format.  Before performing our sentiment analysis, let's first convert the emojis to english phrases to extract additional meaning.
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+Let's start by examining our text column:
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+```{r}
+# examine text column
+head(emoji_text$text)
+```
+Note: 
 
-## More Examples
+* The first and second rows contain text that conveys sentiment (i.e. "hurts", "excited"). 
 
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+* The third row is a little less clear since there are two sentences that convey opposing sentiments. 
 
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+* The fourth and fifth rows contain the same text, however different emojis.  If we were to drop the emojis from these texts, they would both have the same sentiment score.  However, the fourth row suggests that someone is happy and the fifth row suggests that someone is unhappy to go to bed.
+
+Let's see if our sentiment analysis can pick up on these differences after replacing the emojis with an english phrase.
+
+```{r}
+# convert emojis to text
+# REPLACE WITH LIBRARY WITH QACSTAT
+library(qacEmoji)
+emoji_text$clean_text <- emojitotext(emoji_text$text)
 ```
 
-Also a quote using `>`:
+To perform sentiment analysis, we will be using the package `syzhet` and the function `get_sentiment`.  For this example, the method used to extract sentiment is the `afinn` method however the `syzhet` package includes multiple different methods for getting the sentiment of a phrase.
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+```{r}
+library(syuzhet)
+emoji_text$sentiment <- get_sentiment(emoji_text$clean_text, method = "afinn")
+```
+
+Now let's look at our resulting dataframe.
+
+```{r, echo = FALSE}
+library(formattable)
+formattable(emoji_text,
+            align = c("l", "l", "r"),
+            list(sentiment = formatter("span",
+                                       style = function(x) ifelse(x > 0,
+                                                                  "color:green", "color:red"))))
+```
+
+Notice that by replacing the emojis with their corresponding english phrases, the sentiment scores for the fourth and fifth columns are what we expected.

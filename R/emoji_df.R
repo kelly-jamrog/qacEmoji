@@ -1,7 +1,7 @@
 #'@title Emoji Reference Dataframe
 #'
 #'@description
-#'A dataframe containing emojis, their ASCII codes, and a brief text description.
+#'A dataframe containing emojis, their unicodes, and a brief text description.
 #'
 #'@docType data
 #'@keywords datasets
@@ -13,12 +13,12 @@
 #'\describe{
 #'    \item{unicode}{unicode for emoji as string}
 #'    \item{words}{english phrase for emoji}
-#'    \item{emoji}{raw unicode emoji}
+#'    \item{emoji}{emoji}
 #'    \item{byte}{byte sequence for emoji}
-#'    \item{nchar}{number of characters for byte sequence}
+#'    \item{nchar}{length of byte sequence}
 #'}
 #'
-#'@source The data was sourced from \href{http://unicode.org/Public/emoji/11.0/}{unicode.org}.
+#'@source The data was sourced from \href{(https://unicode.org/emoji/charts/full-emoji-list.html}{unicode.org}.
 #'
 #'
 #'@examples

@@ -12,13 +12,15 @@
 #'
 #'@param text a character string.
 #'@param accents a boolean which is TRUE if user wants to replace accents, and FALSE otherwise.
-#'@param delete a boolean which is TRUE if user wants to delete non-emoji, non-accent bytes.
+#'@param delete a boolean which is TRUE if user wants to delete bytes that are not matched to an emoji or accent.
 #'
 #'
 #'@return a character string.
 #'@import stringr
 #'
 #'@author Kelly Jamrog <kjamrog@@wesleyan.edu>
+#'@author Jacob Kuruvilla <jkuruvilla@@wesleyan.edu>
+#'@author Kim Pham <spham@@wesleyan.edu>
 #'
 #'
 #'@examples
@@ -28,7 +30,6 @@
 
 emojitotext_for_one <- function(text, accents, delete){
   for (i in 1:length(emoji_df$byte)) {
-    print(i)
     if (str_detect(text, emoji_df$byte[i])) {
       text <- str_replace_all(text, emoji_df$byte[i], emoji_df$words[i])
     }
@@ -37,7 +38,6 @@ emojitotext_for_one <- function(text, accents, delete){
 
   if(accents == TRUE) {
     for (i in 1:length(accent_df$byte)) {
-      print(i)
       if (str_detect(text, accent_df$byte[i])) {
         text <- str_replace_all(text, accent_df$byte[i], accent_df$words[i])
       }

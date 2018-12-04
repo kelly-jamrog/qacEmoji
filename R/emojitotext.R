@@ -13,12 +13,14 @@
 #'
 #'@param vector a vector of character strings.
 #'@param accents a boolean which is TRUE if user wants to replace accents, and FALSE otherwise.
-#'@param delete a boolean which is TRUE if user wants to delete non-emoji, non-accent bytes.
+#'@param delete a boolean which is TRUE if user wants to delete bytes that are not matched to an emoji or accent.
 #'
 #'@import dplyr
 #'@return a vector of character strings.
 #'
 #'@author Kelly Jamrog <kjamrog@@wesleyan.edu>
+#'@author Jacob Kuruvilla <jkuruvilla@@wesleyan.edu>
+#'@author Kim Pham <spham@@wesleyan.edu>
 #'
 #'@export
 #'@examples
